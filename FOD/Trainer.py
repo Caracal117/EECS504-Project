@@ -145,7 +145,7 @@ class Trainer(object):
 
     def save_model(self,loss):
         # path_model = os.path.join(self.config['General']['path_model'], self.model.__class__.__name__)
-        path_model = os.path.join(self.config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
+        path_model = os.path.join(self.config['General']['path_model'], 'FocusOnDepth_{}.p'.format(self.config['General']['model_timm']))
         create_dir(path_model)
         torch.save({'model_state_dict': self.model.state_dict(),
                     'optimizer_backbone_state_dict': self.optimizer_backbone.state_dict(),
@@ -211,4 +211,4 @@ class Trainer(object):
                 self.model.load_state_dict(checkpoint['model_state_dict'])
         else:
             raise FileNotFoundError
-        # self.load_loss = checkpoint['loss']
+        self.load_loss = checkpoint['loss']

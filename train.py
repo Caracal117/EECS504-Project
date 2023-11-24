@@ -30,6 +30,7 @@ val_data = ConcatDataset(autofocus_datasets_val)
 val_dataloader = DataLoader(val_data, batch_size=config['General']['batch_size'], shuffle=True)
 
 trainer = Trainer(config)
-path_model = os.path.join(config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
-trainer.load_checkpoint(path_model)
+if config['General']['pretained']:
+    path_model = os.path.join(config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
+    trainer.load_checkpoint(path_model)
 trainer.train(train_dataloader, val_dataloader)
