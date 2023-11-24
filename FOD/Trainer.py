@@ -151,7 +151,7 @@ class Trainer(object):
                     'optimizer_backbone_state_dict': self.optimizer_backbone.state_dict(),
                     'optimizer_scratch_state_dict': self.optimizer_scratch.state_dict(),
                     'loss' : loss
-                    }, path_model+'.p')
+                    }, path_model)
         print('Model saved at : {}'.format(path_model))
 
     def img_logger(self, X, Y_depths, Y_segmentations, output_depths, output_segmentations):
@@ -205,6 +205,7 @@ class Trainer(object):
         #     })
 
     def load_checkpoint(self, path_model):
+        # print(path_model)
         if os.path.isfile(path_model):
             checkpoint = torch.load(path_model, map_location='cpu')
             if self.model is not None and checkpoint['model_state_dict'] is not None:
@@ -212,3 +213,4 @@ class Trainer(object):
         else:
             raise FileNotFoundError
         self.load_loss = checkpoint['loss']
+        print(self.load_loss)
