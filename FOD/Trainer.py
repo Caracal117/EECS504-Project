@@ -34,6 +34,7 @@ class Trainer(object):
         )
 
         self.model.to(self.device)
+        self.load_loss = Inf
         # print(self.model)
         # exit(0)
 
@@ -43,15 +44,18 @@ class Trainer(object):
 
     def train(self, train_dataloader, val_dataloader):
         epochs = self.config['General']['epochs']
-        if self.config['wandb']['enable']:
-            wandb.init(project="FocusOnDepth", entity=self.config['wandb']['username'])
-            wandb.config = {
-                "learning_rate_backbone": self.config['General']['lr_backbone'],
-                "learning_rate_scratch": self.config['General']['lr_scratch'],
-                "epochs": epochs,
-                "batch_size": self.config['General']['batch_size']
-            }
-        val_loss = Inf
+        # if self.config['wandb']['enable']:
+        #     wandb.init(project="FocusOnDepth", entity=self.config['wandb']['username'])
+        #     wandb.config = {
+        #         "learning_rate_backbone": self.config['General']['lr_backbone'],
+        #         "learning_rate_scratch": self.config['General']['lr_scratch'],
+        #         "epochs": epochs,
+        #         "batch_size": self.config['General']['batch_size']
+        #     }
+        
+        val_loss = min(Inf,self.load_loss)
+        self.optimizer_backbone, self.optimizer_scratch = get_optimizer(self.config, self.model)
+        self.schedulers = get_schedulers([self.optimizer_backbone, self.optimizer_scratch])
         for epoch in range(epochs):  # loop over the dataset multiple times
             print("Epoch ", epoch+1)
             running_loss = 0.0
@@ -94,7 +98,7 @@ class Trainer(object):
             new_val_loss = self.run_eval(val_dataloader)
 
             if new_val_loss < val_loss:
-                self.save_model()
+                self.save_model(new_val_loss)
                 val_loss = new_val_loss
 
             self.schedulers[0].step(new_val_loss)
@@ -134,17 +138,19 @@ class Trainer(object):
                 loss = self.loss_depth(output_depths, Y_depths) + self.loss_segmentation(output_segmentations, Y_segmentations)
                 val_loss += loss.item()
                 pbar.set_postfix({'validation_loss': val_loss/(i+1)})
-            if self.config['wandb']['enable']:
-                wandb.log({"val_loss": val_loss/(i+1)})
-                self.img_logger(X_1, Y_depths_1, Y_segmentations_1, output_depths_1, output_segmentations_1)
+            # if self.config['wandb']['enable']:
+            #     wandb.log({"val_loss": val_loss/(i+1)})
+            #     self.img_logger(X_1, Y_depths_1, Y_segmentations_1, output_depths_1, output_segmentations_1)
         return val_loss/(i+1)
 
-    def save_model(self):
-        path_model = os.path.join(self.config['General']['path_model'], self.model.__class__.__name__)
+    def save_model(self,loss):
+        # path_model = os.path.join(self.config['General']['path_model'], self.model.__class__.__name__)
+        path_model = os.path.join(self.config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
         create_dir(path_model)
         torch.save({'model_state_dict': self.model.state_dict(),
                     'optimizer_backbone_state_dict': self.optimizer_backbone.state_dict(),
-                    'optimizer_scratch_state_dict': self.optimizer_scratch.state_dict()
+                    'optimizer_scratch_state_dict': self.optimizer_scratch.state_dict(),
+                    'loss' : loss
                     }, path_model+'.p')
         print('Model saved at : {}'.format(path_model))
 
@@ -166,15 +172,15 @@ class Trainer(object):
             tmp = tmp.unsqueeze(1).detach().cpu().numpy()
             tmp = np.repeat(tmp, 3, axis=1)
             segmentation_preds = tmp.astype('float32')
-        # print("******************************************************")
-        # print(imgs.shape, imgs.mean().item(), imgs.max().item(), imgs.min().item())
-        # if output_depths != None:
-        #     print(depth_truths.shape, depth_truths.mean().item(), depth_truths.max().item(), depth_truths.min().item())
-        #     print(depth_preds.shape, depth_preds.mean().item(), depth_preds.max().item(), depth_preds.min().item())
+        print("******************************************************")
+        print(imgs.shape, imgs.mean().item(), imgs.max().item(), imgs.min().item())
+        if output_depths != None:
+            print(depth_truths.shape, depth_truths.mean().item(), depth_truths.max().item(), depth_truths.min().item())
+            print(depth_preds.shape, depth_preds.mean().item(), depth_preds.max().item(), depth_preds.min().item())
         # if output_segmentations != None:
         #     print(segmentation_truths.shape, segmentation_truths.mean().item(), segmentation_truths.max().item(), segmentation_truths.min().item())
         #     print(segmentation_preds.shape, segmentation_preds.mean().item(), segmentation_preds.max().item(), segmentation_preds.min().item())
-        # print("******************************************************")
+        print("******************************************************")
         imgs = imgs.transpose(0,2,3,1)
         if output_depths != None:
             depth_truths = depth_truths.transpose(0,2,3,1)
@@ -184,16 +190,25 @@ class Trainer(object):
             segmentation_preds = segmentation_preds.transpose(0,2,3,1)
         output_dim = (int(self.config['wandb']['im_w']), int(self.config['wandb']['im_h']))
 
-        wandb.log({
-            "img": [wandb.Image(cv2.resize(im, output_dim), caption='img_{}'.format(i+1)) for i, im in enumerate(imgs)]
-        })
-        if output_depths != None:
-            wandb.log({
-                "depth_truths": [wandb.Image(cv2.resize(im, output_dim), caption='depth_truths_{}'.format(i+1)) for i, im in enumerate(depth_truths)],
-                "depth_preds": [wandb.Image(cv2.resize(im, output_dim), caption='depth_preds_{}'.format(i+1)) for i, im in enumerate(depth_preds)]
-            })
-        if output_segmentations != None:
-            wandb.log({
-                "seg_truths": [wandb.Image(cv2.resize(im, output_dim), caption='seg_truths_{}'.format(i+1)) for i, im in enumerate(segmentation_truths)],
-                "seg_preds": [wandb.Image(cv2.resize(im, output_dim), caption='seg_preds_{}'.format(i+1)) for i, im in enumerate(segmentation_preds)]
-            })
+        # wandb.log({
+        #     "img": [wandb.Image(cv2.resize(im, output_dim), caption='img_{}'.format(i+1)) for i, im in enumerate(imgs)]
+        # })
+        # if output_depths != None:
+        #     wandb.log({
+        #         "depth_truths": [wandb.Image(cv2.resize(im, output_dim), caption='depth_truths_{}'.format(i+1)) for i, im in enumerate(depth_truths)],
+        #         "depth_preds": [wandb.Image(cv2.resize(im, output_dim), caption='depth_preds_{}'.format(i+1)) for i, im in enumerate(depth_preds)]
+        #     })
+        # if output_segmentations != None:
+        #     wandb.log({
+        #         "seg_truths": [wandb.Image(cv2.resize(im, output_dim), caption='seg_truths_{}'.format(i+1)) for i, im in enumerate(segmentation_truths)],
+        #         "seg_preds": [wandb.Image(cv2.resize(im, output_dim), caption='seg_preds_{}'.format(i+1)) for i, im in enumerate(segmentation_preds)]
+        #     })
+
+    def load_checkpoint(self, path_model):
+        if os.path.isfile(path_model):
+            checkpoint = torch.load(path_model, map_location='cpu')
+            if self.model is not None and checkpoint['model_state_dict'] is not None:
+                self.model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            raise FileNotFoundError
+        # self.load_loss = checkpoint['loss']

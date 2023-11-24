@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import torch
+import os
 
 from torch.utils.data import DataLoader
 from torch.utils.data import ConcatDataset
@@ -29,4 +30,6 @@ val_data = ConcatDataset(autofocus_datasets_val)
 val_dataloader = DataLoader(val_data, batch_size=config['General']['batch_size'], shuffle=True)
 
 trainer = Trainer(config)
+path_model = os.path.join(config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
+trainer.load_checkpoint(path_model)
 trainer.train(train_dataloader, val_dataloader)
