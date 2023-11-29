@@ -42,7 +42,7 @@ class Predictor(object):
         self.transform_image = transforms.Compose([
             transforms.Resize((resize_h, resize_w)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         self.output_dir = self.config['General']['path_predicted_images']
         create_dir(self.output_dir)

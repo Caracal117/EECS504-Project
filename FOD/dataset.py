@@ -62,7 +62,7 @@ class AutoFocusDataset(Dataset):
         self.p_rot = config['Dataset']['transforms']['p_rot'] if split=='train' else 0
         self.resize_h = config['Dataset']['transforms']['resize_h']
         self.resize_w = config['Dataset']['transforms']['resize_w']
-
+        self.resize = config['Dataset']['transforms']['resize']
 
     def __len__(self):
         """

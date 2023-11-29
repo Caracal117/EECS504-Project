@@ -1,7 +1,7 @@
 {
     "General":{
         "device":"cuda",
-        "type":"full",
+        "type":"depth",
         "model_timm":"vit_base_patch16_384",
         "emb_dim":768,
         "hooks":[2, 5, 8, 11],

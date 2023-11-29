@@ -2,7 +2,7 @@ import os
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-import wandb
+
 import cv2
 import torch.nn as nn
 
@@ -45,15 +45,7 @@ class Trainer(object):
 
     def train(self, train_dataloader, val_dataloader):
         epochs = self.config['General']['epochs']
-        # if self.config['wandb']['enable']:
-        #     wandb.init(project="FocusOnDepth", entity=self.config['wandb']['username'])
-        #     wandb.config = {
-        #         "learning_rate_backbone": self.config['General']['lr_backbone'],
-        #         "learning_rate_scratch": self.config['General']['lr_scratch'],
-        #         "epochs": epochs,
-        #         "batch_size": self.config['General']['batch_size']
-        #     }
-        
+
         val_loss = min(Inf,self.load_loss)
         self.optimizer_backbone, self.optimizer_scratch = get_optimizer(self.config, self.model)
         self.schedulers = get_schedulers([self.optimizer_backbone, self.optimizer_scratch])
@@ -92,9 +84,6 @@ class Trainer(object):
                     )
                     exit(0)
 
-                if self.config['wandb']['enable'] and ((i % 50 == 0 and i>0) or i==len(train_dataloader)-1):
-                    wandb.log({"loss": running_loss/(i+1)})
-                pbar.set_postfix({'training_loss': running_loss/(i+1)})
 
             new_val_loss = self.run_eval(val_dataloader)
 
@@ -109,8 +98,6 @@ class Trainer(object):
 
     def run_eval(self, val_dataloader):
         """
-            Evaluate the model on the validation set and visualize some results
-            on wandb
             :- val_dataloader -: torch dataloader
         """
         val_loss = 0.
@@ -139,9 +126,7 @@ class Trainer(object):
                 loss = self.loss_depth(output_depths, Y_depths) + self.loss_segmentation(output_segmentations, Y_segmentations)
                 val_loss += loss.item()
                 pbar.set_postfix({'validation_loss': val_loss/(i+1)})
-            # if self.config['wandb']['enable']:
-            #     wandb.log({"val_loss": val_loss/(i+1)})
-            #     self.img_logger(X_1, Y_depths_1, Y_segmentations_1, output_depths_1, output_segmentations_1)
+
         return val_loss/(i+1)
 
     def save_model(self,loss):
@@ -156,7 +141,6 @@ class Trainer(object):
         print('Model saved at : {}'.format(path_model))
 
     def img_logger(self, X, Y_depths, Y_segmentations, output_depths, output_segmentations):
-        nb_to_show = self.config['wandb']['images_to_show'] if self.config['wandb']['images_to_show'] <= len(X) else len(X)
         tmp = X[:nb_to_show].detach().cpu().numpy()
         imgs = (tmp - tmp.min()) / (tmp.max() - tmp.min())
         if output_depths != None:
@@ -189,7 +173,6 @@ class Trainer(object):
         if output_segmentations != None:
             segmentation_truths = segmentation_truths.transpose(0,2,3,1)
             segmentation_preds = segmentation_preds.transpose(0,2,3,1)
-        output_dim = (int(self.config['wandb']['im_w']), int(self.config['wandb']['im_h']))
 
     def load_checkpoint(self, path_model):
         if os.path.isfile(path_model):
