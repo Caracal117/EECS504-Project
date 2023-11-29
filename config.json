@@ -1,7 +1,7 @@
 {
     "General":{
         "device":"cuda",
-        "type":"depth",
+        "type":"full",
         "model_timm":"vit_base_patch16_384",
         "emb_dim":768,
         "hooks":[2, 5, 8, 11],
@@ -19,7 +19,7 @@
         "path_predicted_images":"output",
         "seed":0,
         "patch_size":16,
-        "pretained": true
+        "pretained": false
     },
     "Dataset":{
         "paths":{
@@ -40,7 +40,9 @@
             "split_test":0.2
         },
         "transforms":{
-            "resize":384,
+            "resize_h":480,
+            "resize_w":640,
+            "resize":480,
             "p_flip":0.5,
             "p_crop":0.3,
             "p_rot":0.2
@@ -51,13 +53,6 @@
                 "color": [150,5,61]
             }
         }
-    },
-    "wandb":{
-        "enable":false,
-        "username":"younesbelkada",
-        "images_to_show":3,
-        "im_h":540,
-        "im_w":980
     }
 
 }
