@@ -60,7 +60,9 @@ class AutoFocusDataset(Dataset):
         self.p_flip = config['Dataset']['transforms']['p_flip'] if split=='train' else 0
         self.p_crop = config['Dataset']['transforms']['p_crop'] if split=='train' else 0
         self.p_rot = config['Dataset']['transforms']['p_rot'] if split=='train' else 0
-        self.resize = config['Dataset']['transforms']['resize']
+        self.resize_h = config['Dataset']['transforms']['resize_h']
+        self.resize_w = config['Dataset']['transforms']['resize_w']
+
 
     def __len__(self):
         """
@@ -92,14 +94,14 @@ class AutoFocusDataset(Dataset):
             image = TF.crop(image, top, left, random_size, random_size)
             depth = TF.crop(depth, top, left, random_size, random_size)
             segmentation = TF.crop(segmentation, top, left, random_size, random_size)
-            image = transforms.Resize((self.resize, self.resize))(image)
-            depth = transforms.Resize((self.resize, self.resize))(depth)
-            segmentation = transforms.Resize((self.resize, self.resize), interpolation=transforms.InterpolationMode.NEAREST)(segmentation)
+            image = transforms.Resize((self.resize_h, self.resize_w))(image)
+            depth = transforms.Resize((self.resize_h, self.resize_w))(depth)
+            segmentation = transforms.Resize((self.resize_h, self.resize_w), interpolation=transforms.InterpolationMode.NEAREST)(segmentation)
 
         if random.random() < self.p_rot:
             #rotate
             random_angle = random.random()*20 - 10 #[-10 ; 10]
-            mask = torch.ones((1,self.resize,self.resize)) #useful for the resize at the end
+            mask = torch.ones((1,self.resize_h,self.resize_w)) #useful for the resize at the end
             mask = TF.rotate(mask, random_angle, interpolation=transforms.InterpolationMode.BILINEAR)
             image = TF.rotate(image, random_angle, interpolation=transforms.InterpolationMode.BILINEAR)
             depth = TF.rotate(depth, random_angle, interpolation=transforms.InterpolationMode.BILINEAR)
@@ -113,9 +115,9 @@ class AutoFocusDataset(Dataset):
             depth = TF.crop(depth, coin, coin, size, size)
             segmentation = TF.crop(segmentation, coin, coin, size, size)
             #Resize
-            image = transforms.Resize((self.resize, self.resize))(image)
-            depth = transforms.Resize((self.resize, self.resize))(depth)
-            segmentation = transforms.Resize((self.resize, self.resize), interpolation=transforms.InterpolationMode.NEAREST)(segmentation)
+            image = transforms.Resize((self.resize_h, self.resize_w))(image)
+            depth = transforms.Resize((self.resize_h, self.resize_w))(depth)
+            segmentation = transforms.Resize((self.resize_h, self.resize_w), interpolation=transforms.InterpolationMode.NEAREST)(segmentation)
         # show([imgorig, image, depth, segmentation])
         # exit(0)
         return image, depth, segmentation

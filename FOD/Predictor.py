@@ -21,9 +21,10 @@ class Predictor(object):
 
         self.device = torch.device(self.config['General']['device'] if torch.cuda.is_available() else "cpu")
         print("device: %s" % self.device)
-        resize = config['Dataset']['transforms']['resize']
+        resize_h = config['Dataset']['transforms']['resize_h']
+        resize_w = config['Dataset']['transforms']['resize_w']
         self.model = FocusOnDepth(
-                    image_size  =   (3,resize,resize),
+                    image_size  =   (3,resize_h,resize_w),
                     emb_dim     =   config['General']['emb_dim'],
                     resample_dim=   config['General']['resample_dim'],
                     read        =   config['General']['read'],
@@ -39,7 +40,7 @@ class Predictor(object):
         )
         self.model.eval()
         self.transform_image = transforms.Compose([
-            transforms.Resize((resize, resize)),
+            transforms.Resize((resize_h, resize_w)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])

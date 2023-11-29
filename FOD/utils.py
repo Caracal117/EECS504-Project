@@ -31,19 +31,20 @@ def get_splitted_dataset(config, split, dataset_name, path_images, path_depths, 
     return path_images, path_depths, path_segmentation
 
 def get_transforms(config):
-    im_size = config['Dataset']['transforms']['resize']
+    resize_h = config['Dataset']['transforms']['resize_h']
+    resize_w = config['Dataset']['transforms']['resize_w']
     transform_image = transforms.Compose([
-        transforms.Resize((im_size, im_size)),
+        transforms.Resize((resize_h, resize_w)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
     transform_depth = transforms.Compose([
-        transforms.Resize((im_size, im_size)),
+        transforms.Resize((resize_h, resize_w)),
         transforms.Grayscale(num_output_channels=1) ,
         transforms.ToTensor()
     ])
     transform_seg = transforms.Compose([
-        transforms.Resize((im_size, im_size), interpolation=transforms.InterpolationMode.NEAREST),
+        transforms.Resize((resize_h, resize_w), interpolation=transforms.InterpolationMode.NEAREST),
         ToMask(config['Dataset']['classes']),
     ])
     return transform_image, transform_depth, transform_seg

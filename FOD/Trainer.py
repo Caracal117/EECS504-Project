@@ -20,9 +20,10 @@ class Trainer(object):
 
         self.device = torch.device(self.config['General']['device'] if torch.cuda.is_available() else "cpu")
         print("device: %s" % self.device)
-        resize = config['Dataset']['transforms']['resize']
+        resize_h = config['Dataset']['transforms']['resize_h']
+        resize_w = config['Dataset']['transforms']['resize_w']
         self.model = FocusOnDepth(
-                    image_size  =   (3,resize,resize),
+                    image_size  =   (3,resize_h,resize_w),
                     emb_dim     =   config['General']['emb_dim'],
                     resample_dim=   config['General']['resample_dim'],
                     read        =   config['General']['read'],
@@ -189,20 +190,6 @@ class Trainer(object):
             segmentation_truths = segmentation_truths.transpose(0,2,3,1)
             segmentation_preds = segmentation_preds.transpose(0,2,3,1)
         output_dim = (int(self.config['wandb']['im_w']), int(self.config['wandb']['im_h']))
-
-        # wandb.log({
-        #     "img": [wandb.Image(cv2.resize(im, output_dim), caption='img_{}'.format(i+1)) for i, im in enumerate(imgs)]
-        # })
-        # if output_depths != None:
-        #     wandb.log({
-        #         "depth_truths": [wandb.Image(cv2.resize(im, output_dim), caption='depth_truths_{}'.format(i+1)) for i, im in enumerate(depth_truths)],
-        #         "depth_preds": [wandb.Image(cv2.resize(im, output_dim), caption='depth_preds_{}'.format(i+1)) for i, im in enumerate(depth_preds)]
-        #     })
-        # if output_segmentations != None:
-        #     wandb.log({
-        #         "seg_truths": [wandb.Image(cv2.resize(im, output_dim), caption='seg_truths_{}'.format(i+1)) for i, im in enumerate(segmentation_truths)],
-        #         "seg_preds": [wandb.Image(cv2.resize(im, output_dim), caption='seg_preds_{}'.format(i+1)) for i, im in enumerate(segmentation_preds)]
-        #     })
 
     def load_checkpoint(self, path_model):
         if os.path.isfile(path_model):
