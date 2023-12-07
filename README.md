@@ -16,7 +16,7 @@ You can first download one of the models:
 
 Get the links of the following model:
 
-+ [```Model trained on NYU2 Dataset```](https://drive.google.com/file/d/1Q7I777FW_dz5p5UlMsD6aktWQ1eyR1vN/view?usp=sharing)
++ [```Model trained on NYU2 Dataset```](https://drive.google.com/file/d/1NvVQr5WoMRDrhnNc3tbhc43pYrPZMp0T/view?usp=drive_link)
 
 And put the ```.p``` file into the directory ```models/```. After that, you need to update the ```config.json``` according to the pre-trained model you have chosen to run the predictions (this means that if you load a depth-only model, then you have to set ```type``` to ```depth``` for example ...).
 
