@@ -1,82 +1,44 @@
-# Focus On Depth - A single DPT encoder for AutoFocus application and Dense Prediction Tasks
+# EECS 504 course project - Monocular Depth Estimation with Vision Transformer
 
-![pytorch](https://img.shields.io/badge/pytorch-v1.10-green.svg?style=plastic)
-![wandb](https://img.shields.io/badge/wandb-v0.12.10-blue.svg?style=plastic)
-![scipy](https://img.shields.io/badge/scipy-v1.7.3-orange.svg?style=plastic)
 
 <!-- ![presentation](https://i.ibb.co/rbySmMc/DL-FOD-POSTER-1.png) -->
 
-<p align="center">
-  <img src="images/pull_figure.png"/>
-</p>
-
-<!-- > Input image taken from: https://koboguide.com/how-to-improve-portrait-photography/ -->
-
 ## Abstract
 
-<!-- Recent works have shown that in the real world, humans
-rely on the image obtained by their left and right eyes in order to estimate depths of surrounding objects. Thus, -->
-> Depth estimation is a classic task in computer vision, which is of
-great significance for many applications such as augmented
-reality, target tracking and autonomous driving. We firstly
-summarize the deep learning models for monocular depth
-estimation. Secondly, we will implement a recent Vision
-Transformers based architecture for this task. We will seek
-to improve it by adding a segmentation head in order to
-perform multi-task learning using a customly built dataset.
-Thirdly, we will implement our model for in-the-wild images (i.e. without control on the environment, the distance
-and size of objects of interests, and their physical properties
-(rotation, dynamics, etc.)) for Auto-focus application on
-humans and will give qualitative comparison across other
-methods.
+The project focuses on advancing monocular depth estimation using Vision Transformers (ViT). Unlike traditional methods that rely on geometry or conventional learning techniques, our approach leverages the cutting-edge ViT for a more comprehensive understanding of depth in single images. This method involves training the model to assign depth values to each pixel, representing the distance from the camera. Our work in this project is to reimplement the DPT neural network and adding training, evaluation work to make the paper content feasible to training on any dataset.
 
-## :zap: New! Web demo
+## Requirements
 
-You can check the webdemo hosted on Hugging Face and powered by Gradio, [here](https://huggingface.co/spaces/ybelkada/FocusOnDepth).
+``` pip install -r requirements.txt ```
 
-## :pushpin: Requirements
-
-Run: ``` pip install -r requirements.txt ```
-
-## :rocket: Running the model
+## Running the model
 
 You can first download one of the models from the model zoo:
 
-### :bank: Model zoo
+### Pretrained Model
 
 Get the links of the following models:
 
 + [```FocusOnDepth_vit_base_patch16_384.p```](https://drive.google.com/file/d/1Q7I777FW_dz5p5UlMsD6aktWQ1eyR1vN/view?usp=sharing)
 + Other models coming soon...
 
-And put the ```.p``` file into the directory ```models/```. After that, you need to update the ```config.json``` ([Tutorial here](https://github.com/antocad/FocusOnDepth/wiki/Config-Wiki)) according to the pre-trained model you have chosen to run the predictions (this means that if you load a depth-only model, then you have to set ```type``` to ```depth``` for example ...).
+And put the ```.p``` file into the directory ```models/```. After that, you need to update the ```config.json``` according to the pre-trained model you have chosen to run the predictions (this means that if you load a depth-only model, then you have to set ```type``` to ```depth``` for example ...).
 
-### :dart: Run a prediction
+### Run a prediction
 
 Put your input images (that have to be ```.png``` or ```.jpg```) into the ```input/``` folder. Then, just run ```python run.py``` and you should get the depth maps as well as the segmentation masks in the ```output/``` folder.
 
+## Training
 
-## :hammer: Training
+### Build the dataset
 
-### :wrench: Build the dataset
-
-Our model is trained on a combination of
-+ [inria movie 3d dataset](https://www.di.ens.fr/willow/research/stereoseg/) | [view on Kaggle](https://www.kaggle.com/antocad/inria-fod/)
+Our model is got from Kaggle
 + [NYU2 Dataset](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) | [view on Kaggle](https://www.kaggle.com/antocad/nyuv2-fod)
-+ [PoseTrack](https://posetrack.net/) | [view on Kaggle](https://www.kaggle.com/antocad/posetrack-fod)
 
-### :pencil: Configure ```config.json```
+### Run the training script
+Run the training script: ```python train.py```
 
-Please refer to our [config wiki](https://github.com/antocad/FocusOnDepth/wiki/Config-Wiki) to understand how to modify the config file to run a training.
-
-### :nut_and_bolt: Run the training script
-After that, you can simply run the training script: ```python train.py```
-
-
-## :scroll: Citations
-
-Our work is based on the work from Ranflt et al. please do not forget to cite their work! :)
-You can also check our [report](https://github.com/antocad/FocusOnDepth/blob/master/FocusOnDepth.pdf) if you need more details.
+## Citations
 
 ```
 @article{DPT,
